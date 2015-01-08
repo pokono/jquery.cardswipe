@@ -1,4 +1,4 @@
-﻿// A jQuery plugin to detect magnetic card swipes.  Requires a card reader that simulates a keyboard.
+// A jQuery plugin to detect magnetic card swipes.  Requires a card reader that simulates a keyboard.
 // This expects a card that encodes data on track 1, though it also reads tracks 2 and 3.  Most cards
 // use track 1.  This won't recognize cards that don't use track 1, or work with a reader that
 // doesn't read track 1.
@@ -8,13 +8,13 @@
 // Uses pattern at https://github.com/umdjs/umd/blob/master/jqueryPlugin.js to declare
 // the plugin so that it works with or without an AMD-compatible module loader, like RequireJS.
 (function (factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
-    } else {
-        // Browser globals
-        factory(jQuery);
-    }
+	if (typeof define === 'function' && define.amd) {
+		// AMD. Register as an anonymous module.
+		define(['jquery'], factory);
+	} else {
+		// Browser globals
+		factory(jQuery);
+	}
 }(function ($) {
 
 	// State definitions:
@@ -54,7 +54,7 @@
 
 	// Array holding scanned characters
 	var scanbuffer;
-	
+
 	// Interdigit timer
 	var timerHandle = 0;
 
@@ -66,7 +66,7 @@
 			// IDLE: Look for '%', and jump to PENDING.  Otherwise, pass the keypress through.
 			case states.IDLE:
 				// Look for '%'
-				if (e.which == 37) {
+				if (e.which == 37 || e.which == 186) {
 					state(states.PENDING);
 					scanbuffer = new Array();
 					processCode(e.which);
@@ -89,7 +89,7 @@
 			case states.PENDING:
 				// Look for format code character, A-Z. Almost always B for cards
 				// used by the general public.
-				if (e.which >= 65 && e.which <= 90) {
+				if (e.which >= 65 && e.which <= 90 || e.which >= 48 && e.which <= 57) {
 					state(states.READING);
 
 					// Leaving focus on a form element wreaks browser-dependent
@@ -118,9 +118,9 @@
 
 				// Carriage return indicates end of scan
 				if (e.which == 13) {
-					clearTimer();
-					state(states.IDLE);
-					processScan();
+					// clearTimer();
+					// state(states.IDLE);
+					// processScan();
 				}
 
 				if (settings.firstLineOnly && e.which == 63) {
@@ -228,10 +228,14 @@
 		var match = pattern.exec(rawData);
 		if (!match) return null;
 
+		console.log(rawData);
+		console.log(match[1]);
+		var line2 = rawData.substring(match[1].length, rawData.length);
+
 		// Extract the three lines
 		var cardData = {
 			line1: match[1],
-			line2: match[2],
+			line2: line2,
 			line3: match[3]
 		};
 
@@ -247,7 +251,7 @@
 	// Defaults for settings
 	var defaults = {
 		enabled: true,
-		interdigitTimeout: 250,
+		interdigitTimeout: 1000,
 		success: defaultSuccessCallback,
 		error: null,
 		parser: defaultParser,
